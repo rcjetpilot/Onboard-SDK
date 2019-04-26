@@ -5,7 +5,25 @@
  *  @brief
  *  Vehicle API for DJI onboardSDK library
  *
- *  @copyright 2017 DJI. All rights reserved.
+ *  @Copyright (c) 2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  */
 
@@ -25,7 +43,9 @@
 #include "dji_mfio.hpp"
 #include "dji_mission_manager.hpp"
 #include "dji_mobile_communication.hpp"
+#include "dji_mobile_device.hpp"
 #include "dji_open_protocol.hpp"
+#include "dji_platform_manager.hpp"
 #include "dji_status.hpp"
 #include "dji_subscription.hpp"
 #include "dji_thread_manager.hpp"
@@ -33,6 +53,9 @@
 #include "dji_vehicle_callback.hpp"
 #include "dji_version.hpp"
 #include "dji_virtual_rc.hpp"
+#ifdef ADVANCED_SENSING
+#include "dji_advanced_sensing.hpp"
+#endif
 
 /*! Platform includes:
  *  This set of macros figures out which files to include based on your
@@ -77,11 +100,14 @@ public:
 #pragma pack()
 
 public:
-  Vehicle(const char* device, uint32_t baudRate, bool threadSupport);
+  Vehicle(const char* device,
+	  uint32_t baudRate,
+          bool threadSupport,
+          bool enableAdvancedSensing = false);
   Vehicle(bool threadSupport);
   ~Vehicle();
 
-  Protocol*            protocolLayer;
+  OpenProtocol*        protocolLayer;
   DataSubscription*    subscribe;
   DataBroadcast*       broadcast;
   Control*             control;
@@ -89,10 +115,14 @@ public:
   Gimbal*              gimbal;
   MFIO*                mfio;
   MobileCommunication* moc;
+  MobileDevice*        mobileDevice;
   MissionManager*      missionManager;
   HardwareSync*        hardSync;
   // Supported only on Matrice 100
   VirtualRC* virtualRC;
+#ifdef ADVANCED_SENSING
+  AdvancedSensing* advancedSensing;
+#endif
 
   ////// Control authorities //////
 
@@ -203,10 +233,11 @@ public:
   Version::FirmWare getFwVersion() const;
   char*             getHwVersion() const;
   char*             getHwSerialNum() const;
+  bool              isLegacyM600();
+  bool              isM100();
+  bool              isM210V2();
 
   void setKey(const char* key);
-  void setStopCond(bool stopCond);
-  bool            getStopCond();
   CircularBuffer* circularBuffer; //! @note not used yet
 
   /**
@@ -215,7 +246,7 @@ public:
   void setLastReceivedFrame(RecvContainer recvFrame);
   RecvContainer getLastReceivedFrame();
   //! @brief Wait for ACK frame to arrive
-  void* waitForACK(const uint8_t (&cmd)[OpenProtocol::MAX_CMD_ARRAY_SIZE],
+  void* waitForACK(const uint8_t (&cmd)[OpenProtocolCMD::MAX_CMD_ARRAY_SIZE],
                    int timeout);
 
   ///////////// Interact with Protocol ///////////
@@ -226,7 +257,18 @@ public:
    * @param receivedFrame: RecvContainer populated by the protocolLayer
    * @return NULL
    */
-  void processReceivedData(RecvContainer receivedFrame);
+  void processReceivedData(RecvContainer* receivedFrame);
+
+#ifdef ADVANCED_SENSING
+  /*! @brief This function takes a frame and calls the right handlers/functions
+   *         based on the nature of the frame (ack, blocking, etc.)
+   * @param receivedFrame: RecvContainer populated by the AdvancedSensing Protocol
+   * @return NULL
+   */
+  void processAdvancedSensingImgs(RecvContainer* receivedFrame);
+
+  bool advSensingErrorPrintOnce;
+#endif
 
   //! User sets this to true in order to enable Callback thread with Non
   //! blocking calls.
@@ -240,17 +282,27 @@ private:
   ActivateData         accountData;
 
   //! Thread management
-  Thread* readThread;
+public:
+  Thread* getSerialReadThread() const;
+  Thread* getCallbackThread() const;
+  Thread* getUSBReadThread() const;
+  bool    isUSBThreadReady();
+
+private:
+  bool encrypt = false;
+  Thread* UARTSerialReadThread;
   Thread* callbackThread;
+  Thread* USBReadThread;
   bool    stopCond;
+  bool    USBThreadReady;
 
   //! Initialization data
   bool        threadSupported;
+  bool        advancedSensingEnabled;
   const char* device;
   uint32_t    baudRate;
 
   //! ACK management
-
   // Internal space
   uint8_t rawVersionACK[MAX_ACK_SIZE];
 
@@ -261,14 +313,19 @@ private:
   ACK::HotPointRead  hotpointReadACK;
   /*!WayPoint download command
    * @note Download mission setting*/
-  ACK::WayPointInit  waypointInitACK;
+  ACK::WayPointInit waypointInitACK;
   /*!WayPoint index download command ACK
    * @note Download index settings*/
-  ACK::WayPointIndex waypointIndexACK;
+  ACK::WayPointIndex      waypointIndexACK;
+  ACK::WayPoint2CommonRsp wayPoint2CommonRspACK;
   /*!WayPoint add point command ACK*/
   ACK::WayPointAddPoint waypointAddPointACK;
-  ACK::MFIOGet       mfioGetACK;
+  ACK::MFIOGet          mfioGetACK;
 
+public:
+  uint8_t* getRawVersionAck();
+
+private:
   //! This array will be populated by Non blocking calls depending on
   //! availability of array elements.
   //! Elements may be equal to NULL if Callback function execution has been
@@ -288,19 +345,24 @@ public:
   /*! @brief Initialize all functional Vehicle components
 *  like, Subscription, Broadcast, Control, Gimbal, ect
 */
-  void functionalSetUp();
+  int functionalSetUp();
 
 private:
   /*! @brief Initialize minimal Vehicle components
 */
   void mandatorySetUp();
-  bool initOpenProtocol();
 
   /*! @brief Initialize the right platform-specific implementations
    *  @details
    *  @return false if error, true if success
    */
-  bool initPlatformSupport();
+  bool initFullPlatformSupport();
+  /*!
+   * @brief Initialize main read thread to support UART communication
+   * @return fasle if error, true if success
+   */
+  bool initMainReadThread();
+  bool initOpenProtocol();
   void initCallbacks();
   void initCMD_SetSupportMatrix();
   bool initSubscriber();
@@ -310,9 +372,13 @@ private:
   bool initGimbal();
   bool initMFIO();
   bool initMOC();
+  bool initMobileDevice();
   bool initMissionManager();
   bool initHardSync();
   bool initVirtualRC();
+#ifdef ADVANCED_SENSING
+  bool initAdvancedSensing();
+#endif
 
   //* Set of callback handler for various things
   VehicleCallBackHandler subscriberDecodeHandler;
@@ -351,9 +417,11 @@ private:
   /*
    * Used in PushData event handling
    */
+public:
   bool hotPointData;
   bool wayPointData;
 
+private:
   VehicleCallBackHandler hotPointCallback;
   VehicleCallBackHandler wayPointCallback;
   VehicleCallBackHandler missionCallback;
@@ -363,9 +431,22 @@ public:
                                     uint8_t*              ackPtr);
 
 private:
-  const int            wait_timeout = 5;
-  const int 	       GIMBAL_MOUNTED = 1;
-  CMD_SETSupportMatrix cmd_setSupportMatrix[9];
+  const int            wait_timeout   = 5;
+  const int            GIMBAL_MOUNTED = 1;
+  static const uint8_t NUM_CMD_SET    = 9;
+  CMD_SETSupportMatrix cmd_setSupportMatrix[NUM_CMD_SET];
+
+  /*
+   * Platform management
+   */
+public:
+  PlatformManager* getPlatformManager() const;
+  void setEncryption(bool encryptSetting);
+  bool getEncryption();
+  MobileDevice* getMobileDevice();
+
+private:
+  PlatformManager* platformManager;
 };
 }
 }

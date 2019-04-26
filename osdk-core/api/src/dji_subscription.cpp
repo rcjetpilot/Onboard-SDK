@@ -5,7 +5,25 @@
  *  @brief
  *  Telemetry Subscription API for DJI OSDK library
  *
- *  @copyright 2017 DJI. All rights reserved.
+ *  @Copyright (c) 2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  */
 
@@ -23,41 +41,48 @@ const uint32_t DBVersion               = 0x00000100;
 // clang-format off
 TopicInfo Telemetry::TopicDataBase[] =
 {  // Topic Name ,                     UID,
-  {TOPIC_QUATERNION                , UID_QUATERNION               , sizeof(TypeMap<TOPIC_QUATERNION              >::type), 200 ,   0,  255,  0},
-  {TOPIC_ACCELERATION_GROUND       , UID_ACCELERATION_GROUND      , sizeof(TypeMap<TOPIC_ACCELERATION_GROUND     >::type), 200 ,   0,  255,  0},
-  {TOPIC_ACCELERATION_BODY         , UID_ACCELERATION_BODY        , sizeof(TypeMap<TOPIC_ACCELERATION_BODY       >::type), 200 ,   0,  255,  0},
-  {TOPIC_ACCELERATION_RAW          , UID_ACCELERATION_RAW         , sizeof(TypeMap<TOPIC_ACCELERATION_RAW        >::type), 400 ,   0,  255,  0},
-  {TOPIC_VELOCITY                  , UID_VELOCITY                 , sizeof(TypeMap<TOPIC_VELOCITY                >::type), 200 ,   0,  255,  0},
-  {TOPIC_ANGULAR_RATE_FUSIONED     , UID_ANGULAR_RATE_FUSIONED    , sizeof(TypeMap<TOPIC_ANGULAR_RATE_FUSIONED   >::type), 200 ,   0,  255,  0},
-  {TOPIC_ANGULAR_RATE_RAW          , UID_ANGULAR_RATE_RAW         , sizeof(TypeMap<TOPIC_ANGULAR_RATE_RAW        >::type), 400 ,   0,  255,  0},
-  {TOPIC_ALTITUDE_FUSIONED         , UID_ALTITUDE_FUSIONED        , sizeof(TypeMap<TOPIC_ALTITUDE_FUSIONED       >::type), 200 ,   0,  255,  0},
-  {TOPIC_ALTITUDE_BAROMETER        , UID_ALTITUDE_BAROMETER       , sizeof(TypeMap<TOPIC_ALTITUDE_BAROMETER      >::type), 200 ,   0,  255,  0},
-  {TOPIC_HEIGHT_HOMEPOINT          , UID_HEIGHT_HOMEPOINT         , sizeof(TypeMap<TOPIC_HEIGHT_HOMEPOINT        >::type), 1   ,   0,  255,  0},
-  {TOPIC_HEIGHT_FUSION             , UID_HEIGHT_FUSION            , sizeof(TypeMap<TOPIC_HEIGHT_FUSION           >::type), 100 ,   0,  255,  0},
-  {TOPIC_GPS_FUSED                 , UID_GPS_FUSED                , sizeof(TypeMap<TOPIC_GPS_FUSED               >::type), 50  ,   0,  255,  0},
-  {TOPIC_GPS_DATE                  , UID_GPS_DATE                 , sizeof(TypeMap<TOPIC_GPS_DATE                >::type), 50  ,   0,  255,  0},
-  {TOPIC_GPS_TIME                  , UID_GPS_TIME                 , sizeof(TypeMap<TOPIC_GPS_TIME                >::type), 50  ,   0,  255,  0},
-  {TOPIC_GPS_POSITION              , UID_GPS_POSITION             , sizeof(TypeMap<TOPIC_GPS_POSITION            >::type), 50  ,   0,  255,  0},
-  {TOPIC_GPS_VELOCITY              , UID_GPS_VELOCITY             , sizeof(TypeMap<TOPIC_GPS_VELOCITY            >::type), 50  ,   0,  255,  0},
-  {TOPIC_GPS_DETAILS               , UID_GPS_DETAILS              , sizeof(TypeMap<TOPIC_GPS_DETAILS             >::type), 50  ,   0,  255,  0},
-  {TOPIC_RTK_POSITION              , UID_RTK_POSITION             , sizeof(TypeMap<TOPIC_RTK_POSITION            >::type), 50  ,   0,  255,  0},
-  {TOPIC_RTK_VELOCITY              , UID_RTK_VELOCITY             , sizeof(TypeMap<TOPIC_RTK_VELOCITY            >::type), 50  ,   0,  255,  0},
-  {TOPIC_RTK_YAW                   , UID_RTK_YAW                  , sizeof(TypeMap<TOPIC_RTK_YAW                 >::type), 50  ,   0,  255,  0},
-  {TOPIC_RTK_POSITION_INFO         , UID_RTK_POSITION_INFO        , sizeof(TypeMap<TOPIC_RTK_POSITION_INFO       >::type), 50  ,   0,  255,  0},
-  {TOPIC_RTK_YAW_INFO              , UID_RTK_YAW_INFO             , sizeof(TypeMap<TOPIC_RTK_YAW_INFO            >::type), 50  ,   0,  255,  0},
-  {TOPIC_COMPASS                   , UID_COMPASS                  , sizeof(TypeMap<TOPIC_COMPASS                 >::type), 100 ,   0,  255,  0},
-  {TOPIC_RC                        , UID_RC                       , sizeof(TypeMap<TOPIC_RC                      >::type), 50  ,   0,  255,  0},
-  {TOPIC_GIMBAL_ANGLES             , UID_GIMBAL_ANGLES            , sizeof(TypeMap<TOPIC_GIMBAL_ANGLES           >::type), 50  ,   0,  255,  0},
-  {TOPIC_GIMBAL_STATUS             , UID_GIMBAL_STATUS            , sizeof(TypeMap<TOPIC_GIMBAL_STATUS           >::type), 50  ,   0,  255,  0},
-  {TOPIC_STATUS_FLIGHT             , UID_STATUS_FLIGHT            , sizeof(TypeMap<TOPIC_STATUS_FLIGHT           >::type), 50  ,   0,  255,  0},
-  {TOPIC_STATUS_DISPLAYMODE        , UID_STATUS_DISPLAYMODE       , sizeof(TypeMap<TOPIC_STATUS_DISPLAYMODE      >::type), 50  ,   0,  255,  0},
-  {TOPIC_STATUS_LANDINGGEAR        , UID_STATUS_LANDINGGEAR       , sizeof(TypeMap<TOPIC_STATUS_LANDINGGEAR      >::type), 50  ,   0,  255,  0},
-  {TOPIC_STATUS_MOTOR_START_ERROR  , UID_STATUS_MOTOR_START_ERROR , sizeof(TypeMap<TOPIC_STATUS_MOTOR_START_ERROR>::type), 50  ,   0,  255,  0},
-  {TOPIC_BATTERY_INFO              , UID_BATTERY_INFO             , sizeof(TypeMap<TOPIC_BATTERY_INFO            >::type), 50  ,   0,  255,  0},
-  {TOPIC_CONTROL_DEVICE            , UID_CONTROL_DEVICE           , sizeof(TypeMap<TOPIC_CONTROL_DEVICE          >::type), 50  ,   0,  255,  0},
-  {TOPIC_HARD_SYNC                 , UID_HARD_SYNC                , sizeof(TypeMap<TOPIC_HARD_SYNC               >::type), 400 ,   0,  255,  0},
-  {TOPIC_GPS_SIGNAL_LEVEL          , UID_GPS_SIGNAL_LEVEL         , sizeof(TypeMap<TOPIC_GPS_SIGNAL_LEVEL        >::type), 50 ,    0,  255,  0},
-  {TOPIC_GPS_CONTROL_LEVEL         , UID_GPS_CONTROL_LEVEL        , sizeof(TypeMap<TOPIC_GPS_CONTROL_LEVEL       >::type), 50 ,    0,  255,  0}
+  {TOPIC_QUATERNION                , UID_QUATERNION               , sizeof(TypeMap<TOPIC_QUATERNION              >::type), 200,   0,  255,  0},
+  {TOPIC_ACCELERATION_GROUND       , UID_ACCELERATION_GROUND      , sizeof(TypeMap<TOPIC_ACCELERATION_GROUND     >::type), 200,   0,  255,  0},
+  {TOPIC_ACCELERATION_BODY         , UID_ACCELERATION_BODY        , sizeof(TypeMap<TOPIC_ACCELERATION_BODY       >::type), 200,   0,  255,  0},
+  {TOPIC_ACCELERATION_RAW          , UID_ACCELERATION_RAW         , sizeof(TypeMap<TOPIC_ACCELERATION_RAW        >::type), 400,   0,  255,  0},
+  {TOPIC_VELOCITY                  , UID_VELOCITY                 , sizeof(TypeMap<TOPIC_VELOCITY                >::type), 200,   0,  255,  0},
+  {TOPIC_ANGULAR_RATE_FUSIONED     , UID_ANGULAR_RATE_FUSIONED    , sizeof(TypeMap<TOPIC_ANGULAR_RATE_FUSIONED   >::type), 200,   0,  255,  0},
+  {TOPIC_ANGULAR_RATE_RAW          , UID_ANGULAR_RATE_RAW         , sizeof(TypeMap<TOPIC_ANGULAR_RATE_RAW        >::type), 400,   0,  255,  0},
+  {TOPIC_ALTITUDE_FUSIONED         , UID_ALTITUDE_FUSIONED        , sizeof(TypeMap<TOPIC_ALTITUDE_FUSIONED       >::type), 200,   0,  255,  0},
+  {TOPIC_ALTITUDE_BAROMETER        , UID_ALTITUDE_BAROMETER       , sizeof(TypeMap<TOPIC_ALTITUDE_BAROMETER      >::type), 200,   0,  255,  0},
+  {TOPIC_HEIGHT_HOMEPOINT          , UID_HEIGHT_HOMEPOINT         , sizeof(TypeMap<TOPIC_HEIGHT_HOMEPOINT        >::type), 1  ,   0,  255,  0},
+  {TOPIC_HEIGHT_FUSION             , UID_HEIGHT_FUSION            , sizeof(TypeMap<TOPIC_HEIGHT_FUSION           >::type), 100,   0,  255,  0},
+  {TOPIC_GPS_FUSED                 , UID_GPS_FUSED                , sizeof(TypeMap<TOPIC_GPS_FUSED               >::type), 50 ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_GPS_DATE                  , UID_GPS_DATE                 , sizeof(TypeMap<TOPIC_GPS_DATE                >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_GPS_TIME                  , UID_GPS_TIME                 , sizeof(TypeMap<TOPIC_GPS_TIME                >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_GPS_POSITION              , UID_GPS_POSITION             , sizeof(TypeMap<TOPIC_GPS_POSITION            >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_GPS_VELOCITY              , UID_GPS_VELOCITY             , sizeof(TypeMap<TOPIC_GPS_VELOCITY            >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_GPS_DETAILS               , UID_GPS_DETAILS              , sizeof(TypeMap<TOPIC_GPS_DETAILS             >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_RTK_POSITION              , UID_RTK_POSITION             , sizeof(TypeMap<TOPIC_RTK_POSITION            >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_RTK_VELOCITY              , UID_RTK_VELOCITY             , sizeof(TypeMap<TOPIC_RTK_VELOCITY            >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_RTK_YAW                   , UID_RTK_YAW                  , sizeof(TypeMap<TOPIC_RTK_YAW                 >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_RTK_POSITION_INFO         , UID_RTK_POSITION_INFO        , sizeof(TypeMap<TOPIC_RTK_POSITION_INFO       >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_RTK_YAW_INFO              , UID_RTK_YAW_INFO             , sizeof(TypeMap<TOPIC_RTK_YAW_INFO            >::type), 5  ,   0,  255,  0}, //todo: check frequency
+  {TOPIC_COMPASS                   , UID_COMPASS                  , sizeof(TypeMap<TOPIC_COMPASS                 >::type), 100,   0,  255,  0},
+  {TOPIC_RC                        , UID_RC                       , sizeof(TypeMap<TOPIC_RC                      >::type), 50 ,   0,  255,  0},
+  {TOPIC_GIMBAL_ANGLES             , UID_GIMBAL_ANGLES            , sizeof(TypeMap<TOPIC_GIMBAL_ANGLES           >::type), 50 ,   0,  255,  0},
+  {TOPIC_GIMBAL_STATUS             , UID_GIMBAL_STATUS            , sizeof(TypeMap<TOPIC_GIMBAL_STATUS           >::type), 50 ,   0,  255,  0},
+  {TOPIC_STATUS_FLIGHT             , UID_STATUS_FLIGHT            , sizeof(TypeMap<TOPIC_STATUS_FLIGHT           >::type), 50 ,   0,  255,  0},
+  {TOPIC_STATUS_DISPLAYMODE        , UID_STATUS_DISPLAYMODE       , sizeof(TypeMap<TOPIC_STATUS_DISPLAYMODE      >::type), 50 ,   0,  255,  0},
+  {TOPIC_STATUS_LANDINGGEAR        , UID_STATUS_LANDINGGEAR       , sizeof(TypeMap<TOPIC_STATUS_LANDINGGEAR      >::type), 50 ,   0,  255,  0},
+  {TOPIC_STATUS_MOTOR_START_ERROR  , UID_STATUS_MOTOR_START_ERROR , sizeof(TypeMap<TOPIC_STATUS_MOTOR_START_ERROR>::type), 50 ,   0,  255,  0},
+  {TOPIC_BATTERY_INFO              , UID_BATTERY_INFO             , sizeof(TypeMap<TOPIC_BATTERY_INFO            >::type), 50 ,   0,  255,  0},
+  {TOPIC_CONTROL_DEVICE            , UID_CONTROL_DEVICE           , sizeof(TypeMap<TOPIC_CONTROL_DEVICE          >::type), 50 ,   0,  255,  0},
+  {TOPIC_HARD_SYNC                 , UID_HARD_SYNC                , sizeof(TypeMap<TOPIC_HARD_SYNC               >::type), 400,   0,  255,  0},
+  {TOPIC_GPS_SIGNAL_LEVEL          , UID_GPS_SIGNAL_LEVEL         , sizeof(TypeMap<TOPIC_GPS_SIGNAL_LEVEL        >::type), 50 ,   0,  255,  0},
+  {TOPIC_GPS_CONTROL_LEVEL         , UID_GPS_CONTROL_LEVEL        , sizeof(TypeMap<TOPIC_GPS_CONTROL_LEVEL       >::type), 50 ,   0,  255,  0},
+  {TOPIC_RC_FULL_RAW_DATA          , UID_RC_FULL_RAW_DATA         , sizeof(TypeMap<TOPIC_RC_FULL_RAW_DATA        >::type), 50 ,   0,  255,  0},
+  {TOPIC_RC_WITH_FLAG_DATA         , UID_RC_WITH_FLAG_DATA        , sizeof(TypeMap<TOPIC_RC_WITH_FLAG_DATA       >::type), 50 ,   0,  255,  0},
+  {TOPIC_ESC_DATA                  , UID_ESC_DATA                 , sizeof(TypeMap<TOPIC_ESC_DATA                >::type), 50 ,   0,  255,  0},
+  {TOPIC_RTK_CONNECT_STATUS        , UID_RTK_CONNECT_STATUS       , sizeof(TypeMap<TOPIC_RTK_CONNECT_STATUS      >::type), 50 ,   0,  255,  0},
+  {TOPIC_GIMBAL_CONTROL_MODE       , UID_GIMBAL_CONTROL_MODE      , sizeof(TypeMap<TOPIC_GIMBAL_CONTROL_MODE     >::type), 50 ,   0,  255,  0},
+  {TOPIC_FLIGHT_ANOMALY            , UID_FLIGHT_ANOMALY           , sizeof(TypeMap<TOPIC_FLIGHT_ANOMALY          >::type), 50 ,   0,  255,  0},
+  {TOPIC_POSITION_VO               , UID_POSITION_VO              , sizeof(TypeMap<TOPIC_POSITION_VO             >::type), 200,   0,  255,  0},
 };
 // clang-format on
 
@@ -77,12 +102,10 @@ DataSubscription::DataSubscription(Vehicle* vehiclePtr)
 
   subscriptionDataDecodeHandler.callback = decodeCallback;
   subscriptionDataDecodeHandler.userData = this;
-  // protocol->setSubscribeCallback(decodeCallback, this);
 }
 
 DataSubscription::~DataSubscription()
 {
-  // protocol->setSubscribeCallback(NULL, NULL);
   subscriptionDataDecodeHandler.callback = 0;
   subscriptionDataDecodeHandler.userData = 0;
 }
@@ -105,7 +128,7 @@ DataSubscription::decodeCallback(Vehicle*      vehiclePtr,
 {
   DataSubscription* subscriptionHandle = (DataSubscription*)subPtr;
 
-  // uint8_t pkgID = *(((uint8_t *)header) + sizeof(Header) + 2);
+  // uint8_t pkgID = *(((uint8_t *)header) + sizeof(OpenHeader) + 2);
   uint8_t pkgID = rcvContainer.recvData.subscribeACK;
 
   if (pkgID >= MAX_NUMBER_OF_PACKAGE)
@@ -141,7 +164,7 @@ DataSubscription::initPackageFromTopicList(int packageID, int numberOfTopics,
 {
   if (package[packageID].isOccupied())
   {
-    DERROR("package [%d] is being occupied.", packageID);
+    DERROR("package [%d] is being occupied.\n", packageID);
     return false;
   }
 
@@ -158,17 +181,17 @@ DataSubscription::registerUserPackageUnpackCallback(
                                            userData);
 }
 
-bool
-DataSubscription::pausePackage(int packageID)
-{
-  return true;
-}
-
-bool
-DataSubscription::resumePackage(int packageID)
-{
-  return true;
-}
+//bool
+//DataSubscription::pausePackage(int packageID)
+//{
+//  return true;
+//}
+//
+//bool
+//DataSubscription::resumePackage(int packageID)
+//{
+//  return true;
+//}
 
 void
 DataSubscription::verify()
@@ -179,8 +202,8 @@ DataSubscription::verify()
   vehicle->nbCallbackFunctions[cbIndex] = (void*)verifyCallback;
   vehicle->nbUserData[cbIndex]          = NULL;
 
-  protocol->send(2, DJI::OSDK::encrypt,
-                 OpenProtocol::CMDSet::Subscribe::versionMatch, &data,
+  protocol->send(2, vehicle->getEncryption(),
+                 OpenProtocolCMD::CMDSet::Subscribe::versionMatch, &data,
                  sizeof(data), 500, 2, true, cbIndex);
 }
 
@@ -192,9 +215,12 @@ DataSubscription::verifyCallback(Vehicle*      vehiclePtr,
   ackErrorCode.info = rcvContainer.recvInfo;
   ackErrorCode.data = rcvContainer.recvData.subscribeACK;
 
-  DSTATUS("Verify result: %d.", ackErrorCode.data);
-
-  if (ACK::getError(ackErrorCode))
+  if (!ACK::getError(ackErrorCode))
+  {
+    DSTATUS("Verify subscription successful.");
+//    subscribPtr->verifySuccessful = true;
+  }
+  else
   {
     ACK::getErrorCodeMessage(ackErrorCode, __func__);
   }
@@ -206,12 +232,22 @@ DataSubscription::verify(int timeout)
   ACK::ErrorCode ack;
   uint32_t       data = DBVersion;
 
-  protocol->send(2, DJI::OSDK::encrypt,
-                 OpenProtocol::CMDSet::Subscribe::versionMatch, &data,
+  protocol->send(2, vehicle->getEncryption(),
+                 OpenProtocolCMD::CMDSet::Subscribe::versionMatch, &data,
                  sizeof(data), 500, 2, NULL, 0);
 
   ack = *((ACK::ErrorCode*)getVehicle()->waitForACK(
-    OpenProtocol::CMDSet::Subscribe::versionMatch, timeout));
+    OpenProtocolCMD::CMDSet::Subscribe::versionMatch, timeout));
+
+  if (!ACK::getError(ack))
+  {
+    DSTATUS("Verify subscription successful.");
+//    verifySuccessful = true;
+  }
+  else
+  {
+    ACK::getErrorCodeMessage(ack, __func__);
+  }
   return ack;
 }
 
@@ -242,8 +278,8 @@ DataSubscription::startPackage(int packageID)
     (void*)DataSubscription::addPackageCallback;
   vehicle->nbUserData[cbIndex] = &package[packageID];
 
-  protocol->send(2, DJI::OSDK::encrypt,
-                 OpenProtocol::CMDSet::Subscribe::addPackage, buffer,
+  protocol->send(2, vehicle->getEncryption(),
+                 OpenProtocolCMD::CMDSet::Subscribe::addPackage, buffer,
                  bufferLength, 500, 1, true, cbIndex);
 }
 
@@ -290,12 +326,12 @@ DataSubscription::startPackage(int packageID, int timeout)
            "removePackage first.",
            packageID);
 
-    ack.info.cmd_set = OpenProtocol::CMDSet::subscribe;
+    ack.info.cmd_set = OpenProtocolCMD::CMDSet::subscribe;
 
     // @TODO: the SUBSCRIBER_MULTIPLE_SUBSCRIBE is not returned from FC, we may
     // need to distinguish between "short circuit return" from "round trip
     // return"
-    ack.data = OpenProtocol::ErrorCode::SubscribeACK::MULTIPLE_SUBSCRIBE;
+    ack.data = OpenProtocolCMD::ErrorCode::SubscribeACK::MULTIPLE_SUBSCRIBE;
     return ack;
   }
 
@@ -304,16 +340,16 @@ DataSubscription::startPackage(int packageID, int timeout)
   int bufferLength = package[packageID].serializePackageInfo(buffer);
   package[packageID].allocateDataBuffer();
 
-  protocol->send(2, DJI::OSDK::encrypt,
-                 OpenProtocol::CMDSet::Subscribe::addPackage, buffer,
+  protocol->send(2, vehicle->getEncryption(),
+                 OpenProtocolCMD::CMDSet::Subscribe::addPackage, buffer,
                  bufferLength, 500, 1, NULL, 0);
 
   ack = *((ACK::ErrorCode*)getVehicle()->waitForACK(
-    OpenProtocol::CMDSet::Subscribe::addPackage, timeout));
+    OpenProtocolCMD::CMDSet::Subscribe::addPackage, timeout));
 
   DSTATUS("Start package %d result: %d.",
           package[packageID].getInfo().packageID, ack.data);
-  DSTATUS("Package %d info: freq=%d, nTopics=%d.",
+  DSTATUS("Package %d info: freq=%d, nTopics=%d.\n",
           package[packageID].getInfo().packageID,
           package[packageID].getInfo().freq,
           package[packageID].getInfo().numberOfTopics);
@@ -326,7 +362,6 @@ DataSubscription::startPackage(int packageID, int timeout)
   {
     // TODO Remove. User should do it on the application side
     ACK::getErrorCodeMessage(ack, __func__);
-    // todo: More clean-up?
   }
 
   return ack;
@@ -337,7 +372,7 @@ void
 DataSubscription::extractOnePackage(RecvContainer*       pRcvContainer,
                                     SubscriptionPackage* pkg)
 {
-  //  uint8_t *data = ((uint8_t *)header) + sizeof(Header) + 2;
+  //  uint8_t *data = ((uint8_t *)header) + sizeof(OpenHeader) + 2;
   //  DDEBUG(
   //          "%d unpacking %d %d 0x%x 0x%x.", pkg->getBufferSize(),
   //          header->length - CoreAPI::PackageMin - 3, *((uint8_t *)data + 1),
@@ -361,7 +396,13 @@ DataSubscription::extractOnePackage(RecvContainer*       pRcvContainer,
   }
   else
   {
-    DERROR("Package does not have a valid DataBuffer");
+    // This happens when the FC is not power-cycled
+    if(!(pkg->hasLeftOverData()))
+    {
+      pkg->setLeftOverDataFlag(true);
+      DDEBUG("Detected telemetry data in package %d before subscribing to it.",pkg->getInfo().packageID);
+      DDEBUG("This was due to unclean quit of the program without restarting the drone.\n");
+    }
   }
   protocol->getThreadHandle()->freeMSG();
 }
@@ -376,8 +417,8 @@ DataSubscription::removePackage(int packageID)
     (void*)DataSubscription::removePackageCallback;
   vehicle->nbUserData[cbIndex] = &package[packageID];
 
-  protocol->send(2, DJI::OSDK::encrypt,
-                 OpenProtocol::CMDSet::Subscribe::removePackage, &data,
+  protocol->send(2, vehicle->getEncryption(),
+                 OpenProtocolCMD::CMDSet::Subscribe::removePackage, &data,
                  sizeof(data), 500, 1, true, cbIndex);
 }
 
@@ -398,6 +439,10 @@ DataSubscription::removePackageCallback(Vehicle*      vehiclePtr,
   {
     DSTATUS("Remove package %d successful.", packageID);
     packageHandle->packageRemoveSuccessHandler();
+    if(packageHandle->hasLeftOverData())
+    {
+      packageHandle->setLeftOverDataFlag(false);
+    }
   }
   else
   {
@@ -411,17 +456,115 @@ DataSubscription::removePackage(int packageID, int timeout)
   ACK::ErrorCode ack;
   uint8_t        data = packageID;
 
-  protocol->send(2, DJI::OSDK::encrypt,
-                 OpenProtocol::CMDSet::Subscribe::removePackage, &data,
+  protocol->send(2, vehicle->getEncryption(),
+                 OpenProtocolCMD::CMDSet::Subscribe::removePackage, &data,
                  sizeof(data), 500, 1, NULL, 0);
 
   ack = *((ACK::ErrorCode*)getVehicle()->waitForACK(
-    OpenProtocol::CMDSet::Subscribe::removePackage, timeout));
+    OpenProtocolCMD::CMDSet::Subscribe::removePackage, timeout));
 
   if (!ACK::getError(ack))
   {
     DSTATUS("Remove package %d successful.", packageID);
     package[packageID].packageRemoveSuccessHandler();
+    if(package[packageID].hasLeftOverData())
+    {
+      package[packageID].setLeftOverDataFlag(false);
+    }
+  }
+  else
+  {
+    ACK::getErrorCodeMessage(ack, __func__);
+  }
+
+  return ack;
+}
+
+void DataSubscription::removeLeftOverPackages()
+{
+  ACK::ErrorCode ack;
+  for(int retry = 0; retry <=3; retry++)
+  {
+    for(int packageID = 0; packageID < MAX_NUMBER_OF_PACKAGE; packageID++)
+    {
+      if(package[packageID].hasLeftOverData())
+      {
+        if(retry == 3)
+        {
+          DERROR("Package %d was not properly removed due to unclean quit. Please power cycle the drone...", packageID);
+        }
+        ack = removePackage(packageID, 1);
+        if(!ACK::getError(ack))
+        {
+          DERROR("failed to remove package %d", packageID);
+        }
+      }
+    }
+  }
+}
+
+void DataSubscription::removeAllExistingPackages()
+{
+  ACK::ErrorCode ack;
+  for(int packageID=0; packageID<MAX_NUMBER_OF_PACKAGE; packageID++)
+  {
+    if(package[packageID].hasLeftOverData() || package[packageID].isOccupied())
+    {
+      ack = removePackage(packageID, 1);
+      if(!ACK::getError(ack))
+      {
+        DERROR("failed to remove package %d", packageID);
+      }
+    }
+  }
+}
+
+void DataSubscription::reset()
+{
+  uint8_t data = 0;
+  int cbIndex = vehicle->callbackIdIndex();
+  vehicle->nbCallbackFunctions[cbIndex] =
+          (void*)DataSubscription::resetCallback;
+  vehicle->nbUserData[cbIndex] = NULL;
+
+  protocol->send(2, vehicle->getEncryption(),
+                 OpenProtocolCMD::CMDSet::Subscribe::reset, &data,
+                 sizeof(data), 500, 1, true, cbIndex);
+}
+
+void
+DataSubscription::resetCallback(Vehicle*      vehiclePtr,
+                                RecvContainer rcvContainer,
+                                UserData      pkgHandle)
+{
+  ACK::ErrorCode ackErrorCode;
+  ackErrorCode.info = rcvContainer.recvInfo;
+  ackErrorCode.data = rcvContainer.recvData.subscribeACK;
+
+  if (!ACK::getError(ackErrorCode))
+  {
+    DSTATUS("Reset Subscription Successful.");
+  }
+  else
+  {
+    ACK::getErrorCodeMessage(ackErrorCode, __func__);
+  }
+}
+ACK::ErrorCode
+DataSubscription::reset(int timeout)
+{
+  uint8_t data = 0;
+  protocol->send(2, vehicle->getEncryption(),
+                 OpenProtocolCMD::CMDSet::Subscribe::reset, &data,
+                 sizeof(data), 500, 1, NULL, 0);
+  ACK::ErrorCode ack;
+
+  ack = *((ACK::ErrorCode*)getVehicle()->waitForACK(
+          OpenProtocolCMD::CMDSet::Subscribe::reset, timeout));
+
+  if (!ACK::getError(ack))
+  {
+    DSTATUS("Reset Subscription Successful.\n");
   }
   else
   {
@@ -434,6 +577,7 @@ DataSubscription::removePackage(int packageID, int timeout)
 //////////////////////
 SubscriptionPackage::SubscriptionPackage()
   : occupied(false)
+  , leftOverDataFlag(false)
   , incomingDataBuffer(NULL)
   , packageDataSize(0)
 {
@@ -468,6 +612,18 @@ void
 SubscriptionPackage::setOccupied(bool status)
 {
   occupied = status;
+}
+
+bool
+SubscriptionPackage::hasLeftOverData()
+{
+  return leftOverDataFlag;
+}
+
+void
+SubscriptionPackage::setLeftOverDataFlag(bool flag)
+{
+  leftOverDataFlag = flag;
 }
 
 /*
@@ -525,7 +681,7 @@ SubscriptionPackage::allocateDataBuffer()
 {
   if (incomingDataBuffer)
   {
-    delete incomingDataBuffer;
+    delete[] incomingDataBuffer;
     incomingDataBuffer = NULL;
   }
 
@@ -554,7 +710,7 @@ SubscriptionPackage::clearDataBuffer()
 {
   if (incomingDataBuffer)
   {
-    delete incomingDataBuffer;
+    delete[] incomingDataBuffer;
     incomingDataBuffer = NULL;
   }
 }
@@ -656,3 +812,4 @@ SubscriptionPackage::packageRemoveSuccessHandler()
 
   setOccupied(false);
 }
+

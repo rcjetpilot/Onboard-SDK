@@ -1,3 +1,31 @@
+/** @file qt_serial_device.cpp
+ *  @version 3.4
+ *  @date Dec 2017
+ *
+ *  @brief Serial driver implementation using Qt constructs
+ *
+ *  @Copyright (c) 2016-2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 #include <QDateTime>
 #include <QDebug>
 #include <QScrollBar>
@@ -28,6 +56,7 @@ QHardDriver::QHardDriver(QObject* parent, const char* portName, int baudrate)
 {
   this->portName = QString(portName);
   this->baudrate = baudrate;
+  this->initStatus = false;
   display        = 0;
 }
 
@@ -35,12 +64,38 @@ QHardDriver::QHardDriver(QObject* parent, QSerialPort* extSerialPort)
 {
   this->port     = extSerialPort;
   this->baudrate = extSerialPort->baudRate();
+  this->initStatus = false;
   display        = 0;
 }
 
+bool
+QHardDriver::getDeviceStatus()
+{
+  bool curStatus = false;
+  statusLock.lock();
+  curStatus = this->initStatus;
+  statusLock.unlock();
+
+  return curStatus;
+}
+
+void
+QHardDriver::setDeviceStatus(bool status)
+{
+  statusLock.lock();
+  this->initStatus = status;
+  statusLock.unlock();
+}
 void
 QHardDriver::init()
 {
+  initLock.lock();
+  if (this->getDeviceStatus())
+  {
+    initLock.unlock();
+    return;
+  }
+
   port = new QSerialPort(QString(portName));
   if (port != 0)
   {
@@ -54,15 +109,17 @@ QHardDriver::init()
     if (port->open(QIODevice::ReadWrite))
     {
       DSTATUS("port %s open success", port->portName().toLocal8Bit().data());
-
+      setDeviceStatus(true);
       DSTATUS("Read buf size: %d", port->readBufferSize());
     }
     else
     {
       DERROR("fail to open port %s", port->portName().toLocal8Bit().data());
+      setDeviceStatus(false);
     }
     DSTATUS("BaudRate: %d", port->baudRate());
   }
+  initLock.unlock();
 }
 
 time_ms
@@ -106,7 +163,7 @@ QHardDriver::readall(uint8_t* buf, size_t maxlen)
     {
       if (port->bytesAvailable() > 0)
       {
-        QThread::usleep(10);
+        QThread::usleep(100);
         ans = port->read(reinterpret_cast<char*>(buf), maxlen);
         // bufferLock.unlock();
       }

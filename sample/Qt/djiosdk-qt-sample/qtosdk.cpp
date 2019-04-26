@@ -1,3 +1,30 @@
+/*! @file qtosdk.cpp
+ *  @version 3.4
+ *  @date Dec 2017
+ *
+ *
+ *  @Copyright (c) 2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 #include "qtosdk.hpp"
 #include "ui_camera_gimbal_control_panel.h"
 #include "ui_flight_control_panel.h"
@@ -47,6 +74,13 @@ qtOsdk::readAppIDKey()
 void
 qtOsdk::refreshPort()
 {
+  QString currentPort;
+
+  if (ui->portSelection->currentText() != "Connect Serial")
+  {
+   currentPort = ui->portSelection->currentText();
+  }
+
   ui->portSelection->clear();
   QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
   QStringList            list;
@@ -58,6 +92,16 @@ qtOsdk::refreshPort()
       list.append("Connect Serial");
 
   ui->portSelection->addItems(list);
+
+  if (ports.length() != 0)
+  {
+    ui->portSelection->setCurrentIndex(ui->portSelection->findText(currentPort));
+  }
+
+  if (currentPort.isEmpty())
+  {
+    ui->portSelection->setCurrentIndex(0);
+  }
 }
 
 void
@@ -74,8 +118,7 @@ qtOsdk::on_initVehicle_clicked()
   {
     emit changeInitButton("Vehicle Initialized", true);
     QThread::msleep(100);
-    // Initialize all the other parts of the SDK
-    initComponents();
+
   }
   else
   {
@@ -102,7 +145,7 @@ qtOsdk::activateCallback(Vehicle* vehicle, RecvContainer recvFrame,
 {
   qtOsdk*        sdk = (qtOsdk*)userData;
   ACK::ErrorCode ack_data;
-  if (recvFrame.recvInfo.len - Protocol::PackageMin <= 2)
+  if (recvFrame.recvInfo.len - OpenProtocol::PackageMin <= 2)
   {
     ack_data.data = recvFrame.recvData.ack;
     ack_data.info = recvFrame.recvInfo;
@@ -116,6 +159,7 @@ qtOsdk::activateCallback(Vehicle* vehicle, RecvContainer recvFrame,
     else
     {
       emit sdk->changeActivateButton(QString("Activation Successful"), true);
+
     }
   }
   else
@@ -125,7 +169,7 @@ qtOsdk::activateCallback(Vehicle* vehicle, RecvContainer recvFrame,
 
   // Do the stuff the OSDK callback does, since it is private and we cannot call
   // it here
-  if (ack_data.data == OpenProtocol::ErrorCode::ActivationACK::SUCCESS &&
+  if (ack_data.data == OpenProtocolCMD::ErrorCode::ActivationACK::SUCCESS &&
       vehicle->getAccountData().encKey)
   {
     vehicle->protocolLayer->setKey(vehicle->getAccountData().encKey);
@@ -147,9 +191,9 @@ qtOsdk::setControlCallback(Vehicle* vehicle, RecvContainer recvFrame,
 {
   qtOsdk*        sdk = (qtOsdk*)userData;
   ACK::ErrorCode ack;
-  ack.data = OpenProtocol::ErrorCode::CommonACK::NO_RESPONSE_ERROR;
+  ack.data = OpenProtocolCMD::ErrorCode::CommonACK::NO_RESPONSE_ERROR;
 
-  if (recvFrame.recvInfo.len - Protocol::PackageMin <= sizeof(uint16_t))
+  if (recvFrame.recvInfo.len - OpenProtocol::PackageMin <= sizeof(uint16_t))
   {
     ack.data = recvFrame.recvData.ack;
     ack.info = recvFrame.recvInfo;
@@ -161,7 +205,7 @@ qtOsdk::setControlCallback(Vehicle* vehicle, RecvContainer recvFrame,
   }
 
   if (ack.data ==
-      OpenProtocol::ErrorCode::ControlACK::SetControl::RC_MODE_ERROR)
+      OpenProtocolCMD::ErrorCode::ControlACK::SetControl::RC_MODE_ERROR)
   {
     if (sdk)
     {
@@ -171,7 +215,7 @@ qtOsdk::setControlCallback(Vehicle* vehicle, RecvContainer recvFrame,
       DERROR("SDK not initialized.");
   }
   if (ack.data ==
-      OpenProtocol::ErrorCode::ControlACK::SetControl::OBTAIN_CONTROL_SUCCESS)
+      OpenProtocolCMD::ErrorCode::ControlACK::SetControl::OBTAIN_CONTROL_SUCCESS)
   {
     if (sdk)
     {
@@ -182,7 +226,7 @@ qtOsdk::setControlCallback(Vehicle* vehicle, RecvContainer recvFrame,
       DERROR("SDK not initialized.");
   }
   if (ack.data ==
-      OpenProtocol::ErrorCode::ControlACK::SetControl::RELEASE_CONTROL_SUCCESS)
+      OpenProtocolCMD::ErrorCode::ControlACK::SetControl::RELEASE_CONTROL_SUCCESS)
   {
     if (sdk)
     {
@@ -193,13 +237,13 @@ qtOsdk::setControlCallback(Vehicle* vehicle, RecvContainer recvFrame,
     else
       DERROR("SDK not initialized.");
   }
-  if (ack.data == OpenProtocol::ErrorCode::ControlACK::SetControl::
+  if (ack.data == OpenProtocolCMD::ErrorCode::ControlACK::SetControl::
                     OBTAIN_CONTROL_IN_PROGRESS)
   {
     vehicle->obtainCtrlAuthority(qtOsdk::setControlCallback, sdk);
     emit sdk->changeControlAuthorityStatus("Obtaining Control...");
   }
-  if (ack.data == OpenProtocol::ErrorCode::ControlACK::SetControl::
+  if (ack.data == OpenProtocolCMD::ErrorCode::ControlACK::SetControl::
                     RELEASE_CONTROL_IN_PROGRESS)
   {
     vehicle->releaseCtrlAuthority(qtOsdk::setControlCallback, sdk);
@@ -251,14 +295,7 @@ qtOsdk::initFinished(QString initStatus, bool initResult)
                                    "y1: 0, x2: 0, y2: 1, stop: 0 #44a8f2, "
                                    "stop: 1 #44a8f2); color:white");
     ui->initVehicle->setText(initStatus);
-    ui->hwVersionDisplay->setText(QString(vehicle->getHwVersion()));
-    Version::FirmWare fwVersion = vehicle->getFwVersion();
-    uint8_t           ver1      = (fwVersion >> 24) & 0x000000ff;
-    uint8_t           ver2      = (fwVersion >> 16) & 0x000000ff;
-    uint8_t           ver3      = (fwVersion >> 8) & 0x000000ff;
-    uint8_t           ver4      = fwVersion & 0x000000ff;
-    ui->fwVersionDisplay->setText(
-      QString("%1.%2.%3.%4").arg(ver1).arg(ver2).arg(ver3).arg(ver4));
+
   }
   else
   {
@@ -285,6 +322,16 @@ qtOsdk::activateFinished(QString activateStatus, bool activateResult)
     ui->activateButton->setStyleSheet("background-color:qlineargradient(x1: 0, "
                                       "y1: 0, x2: 0, y2: 1, stop: 0 #44a8f2, "
                                       "stop: 1 #44a8f2); color:white");
+    ui->hwVersionDisplay->setText(QString(vehicle->getHwVersion()));
+    Version::FirmWare fwVersion = vehicle->getFwVersion();
+    uint8_t           ver1      = (fwVersion >> 24) & 0x000000ff;
+    uint8_t           ver2      = (fwVersion >> 16) & 0x000000ff;
+    uint8_t           ver3      = (fwVersion >> 8) & 0x000000ff;
+    uint8_t           ver4      = fwVersion & 0x000000ff;
+    ui->fwVersionDisplay->setText(
+      QString("%1.%2.%3.%4").arg(ver1).arg(ver2).arg(ver3).arg(ver4));
+    // Initialize all the other parts of the SDK
+    initComponents();
   }
 }
 

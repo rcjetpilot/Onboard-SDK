@@ -1,3 +1,31 @@
+/** @file qt_thread.cpp
+ *  @version 3.4
+ *  @date Dec 2017
+ *
+ *  @brief Threading implementation using Qt constructs
+ *
+ *  @Copyright (c) 2016-2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 #include <dji_vehicle.hpp>
 #include <qt_thread.hpp>
 
@@ -8,21 +36,22 @@ OSDKThread::OSDKThread(DJI::OSDK::Vehicle* vehicle, int Type, QObject* parent)
   this->vehicle = vehicle;
   type          = Type;
   callTimes     = 0;
-  this->vehicle->setStopCond(false);
+  this->setStopCondition(false);
   numReceiveSignals = 0;
 }
 
 void
 OSDKThread::run()
 {
-  while (!(vehicle->getStopCond()))
+  RecvContainer *recvContainer_copy = new RecvContainer();
+  while (!(this->getStopCondition()))
   {
     callTimes++;
     if (type == 1)
       vehicle->protocolLayer->sendPoll();
     else if (type == 2)
     {
-      callReceivePipeline();
+      callReceivePipeline(recvContainer_copy);
     }
     else if (type == 3)
     {
@@ -31,29 +60,29 @@ OSDKThread::run()
     }
     QThread::usleep(100);
   }
+  delete recvContainer_copy;
+
 }
 
 void
-OSDKThread::callReceivePipeline()
+OSDKThread::setStopCondition(bool stopCond)
 {
-  int numProcess = 0;
-  while (numProcess == 0 || numReceiveSignals == 0 ||
-         (vehicle->protocolLayer->getBufReadPos() <
-          vehicle->protocolLayer->getReadLen()))
-  {
-    numProcess++;
-    if (vehicle->getStopCond())
-      break;
-    RecvContainer recvFrame = vehicle->protocolLayer->receive();
-    if (recvFrame.recvInfo.cmd_id != 0xFF)
-    {
-      vehicle->processReceivedData(recvFrame);
-    }
-    if (numReceiveSignals == 0)
-      numReceiveSignals++;
-  }
-  numReceiveSignals++;
+  this->stop_condition = stopCond;
 }
+
+void
+OSDKThread::callReceivePipeline(RecvContainer* recvContainer_copy)
+{
+  if (this->getStopCondition())
+    return;
+  RecvContainer* recvFrame = vehicle->protocolLayer->receive();
+  if (recvFrame->recvInfo.cmd_id != 0xFF)
+  {
+    memcpy(recvContainer_copy, recvFrame, sizeof(RecvContainer));
+    vehicle->processReceivedData(recvContainer_copy);
+  }
+}
+
 bool
 OSDKThread::createThread()
 {
@@ -65,7 +94,7 @@ OSDKThread::createThread()
 int
 OSDKThread::stopThread()
 {
-  vehicle->setStopCond(true);
+  this->setStopCondition(true);
   qThreadPtr->quit();
   return 0;
 }
@@ -98,13 +127,13 @@ QThreadManager::init()
 }
 
 void
-QThreadManager::lockMemory()
+QThreadManager::lockRecvContainer()
 {
   m_memLock.lock();
 }
 
 void
-QThreadManager::freeMemory()
+QThreadManager::freeRecvContainer()
 {
   m_memLock.unlock();
 }

@@ -4,7 +4,25 @@
  *
  *  @brief All DJI OSDK OpenProtocol Command IDs
  *
- *  @copyright 2017 DJI. All rights reserved.
+ *  @Copyright (c) 2016-2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  */
 
@@ -19,7 +37,7 @@ namespace DJI
 namespace OSDK
 {
 
-class OpenProtocol : public ErrorCode
+class OpenProtocolCMD : public ErrorCode
 {
 public:
   const static int MAX_CMD_ARRAY_SIZE = 2;
@@ -56,6 +74,7 @@ public:
       // CMD_ID_SETARM Supported on Matrice 100, A3, N3
       // with firmware version < 3.3
       const static uint8_t setArm[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t killSwitch[MAX_CMD_ARRAY_SIZE];
       const static uint8_t gimbalSpeed[MAX_CMD_ARRAY_SIZE];
       const static uint8_t gimbalAngle[MAX_CMD_ARRAY_SIZE];
       const static uint8_t cameraShot[MAX_CMD_ARRAY_SIZE];
@@ -67,13 +86,32 @@ public:
     {
       // Waypoint mission commands
       const static uint8_t waypointInit[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointInitV2[MAX_CMD_ARRAY_SIZE];
       const static uint8_t waypointAddPoint[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointUploadV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointUploadActionV2[MAX_CMD_ARRAY_SIZE];
       const static uint8_t waypointSetStart[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointStartStopV2[MAX_CMD_ARRAY_SIZE];
       const static uint8_t waypointSetPause[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointResumePauseV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointBreakRestoreV2[MAX_CMD_ARRAY_SIZE];
       const static uint8_t waypointDownload[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointDownloadInitV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointDownloadPtV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointDownloadActionV2[MAX_CMD_ARRAY_SIZE];
       const static uint8_t waypointIndexDownload[MAX_CMD_ARRAY_SIZE];
       const static uint8_t waypointSetVelocity[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointSetGlobVelocityV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetGlobVelocityV2[MAX_CMD_ARRAY_SIZE];
       const static uint8_t waypointGetVelocity[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetMaxPtNumV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetWayptIdxInListV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetRemainSpaceV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetBreakInfoV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetStatePushDataV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetEventPushDataV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetInfoV2[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t waypointGetMinMaxActionIDV2[MAX_CMD_ARRAY_SIZE];
       // Hotpint mission commands
       const static uint8_t hotpointStart[MAX_CMD_ARRAY_SIZE];
       const static uint8_t hotpointStop[MAX_CMD_ARRAY_SIZE];
@@ -92,6 +130,13 @@ public:
     typedef struct HardwareSync
     {
       const static uint8_t broadcast[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t ppsNMEAGPSGSA[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t ppsNMEAGPSRMC[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t ppsNMEARTKGSA[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t ppsNMEARTKRMC[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t ppsUTCTime[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t ppsUTCFCTimeRef[MAX_CMD_ARRAY_SIZE];
+      const static uint8_t ppsSource[MAX_CMD_ARRAY_SIZE];
     } HardwareSync;
 
     typedef struct VirtualRC

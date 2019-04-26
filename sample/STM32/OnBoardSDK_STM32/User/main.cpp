@@ -5,7 +5,27 @@
  *  @brief
  *  An exmaple program of DJI-onboard-SDK portable for stm32
  *
- *  Copyright 2016 DJI. All right reserved.
+ *  @Copyright (c) 2016-2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *
  *
  *******************************************************************************
  *                                                                             *
@@ -28,7 +48,7 @@
 #define sample_flag 1
 #elif HOTPOINT_MISSION_SAMPLE
 #define sample_flag 2
-#elif WAYPOINT_MISSIOM_SAMPLE
+#elif WAYPOINT_MISSION_SAMPLE
 #define sample_flag 3
 #elif CAMERA_GIMBAL_SAMPLE
 #define sample_flag 4
@@ -94,10 +114,11 @@ main()
       delay_nms(500);
 
       // Check if the firmware version is compatible with this OSDK version
-      if (v->getFwVersion() < extendedVersionBase &&
-	 v->getFwVersion() != Version::M100_31)
+      if (v->getFwVersion() > 0 &&
+				v->getFwVersion() < extendedVersionBase &&
+	      v->getFwVersion() != Version::M100_31)
       {
-	printf("Upgrade firmware using Assistant software!\n");
+	      printf("Upgrade firmware using Assistant software!\n");
         delete (v);
         return -1;
       }
@@ -126,15 +147,20 @@ main()
         case 1:
           printf("\n\nStarting executing position control sample:\r\n");
           delay_nms(1000);
-          // Run monitore takeoff
+          // Run monitor takeoff
           monitoredTakeOff();
           // Run position control sample
           
-				  // For M100 z is 1.2
-				
-				  moveByPositionOffset(0, 6, 0, 0);
-          moveByPositionOffset(6, 0, 0, 0);
-          moveByPositionOffset(-6, -6, 0, 0);
+	  // For M100 zPosition is 1.2
+          float zPosition = 0;
+          if(v->getFwVersion() == Version::M100_31)
+	  {
+	    zPosition = 1.2;
+	  }
+
+	  moveByPositionOffset(0, 6, zPosition, 0);
+          moveByPositionOffset(6, 0, zPosition, 0);
+          moveByPositionOffset(-6, -6, zPosition, 0);
           // Run monitored landing sample
           monitoredLanding();
           break;
@@ -192,6 +218,7 @@ main()
           printf("WAYPOINT_MISSION_SAMPLE\r\n");
           printf("CAMERA_GIMBAL_SAMPLE\r\n");
           printf("MOBILE_SAMPLE\r\n");
+				  printf("TELEMETRY_SAMPLE\r\n");
           break;
       }
     }

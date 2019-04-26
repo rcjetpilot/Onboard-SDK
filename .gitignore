@@ -49,15 +49,8 @@ build/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-<<<<<<< HEAD
-<<<<<<< HEAD
 Makefile
-=======
-Makefile
-
-osdk-core/test
-contrib
->>>>>>> refs/heads/3.3
-=======
-Makefile
->>>>>>> develop
+osdk-core/advanced-sensing-*
+osdk-core/v1-1.0.0
+osdk-core/mo-protocol-*
+osdk-core/waypointv2-core*

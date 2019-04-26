@@ -718,6 +718,11 @@
               <FilePath>..\..\..\..\osdk-core\api\src\dji_mobile_communication.cpp</FilePath>
             </File>
             <File>
+              <FileName>dji_mobile_device.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\osdk-core\api\src\dji_mobile_device.cpp</FilePath>
+            </File>
+            <File>
               <FileName>dji_hardware_sync.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\..\osdk-core\api\src\dji_hardware_sync.cpp</FilePath>
@@ -801,6 +806,16 @@
               <FileName>dji_log.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\..\osdk-core\hal\src\dji_log.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>dji_protocol_base.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\osdk-core\protocol\src\dji_protocol_base.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>dji_platform_manager.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\osdk-core\hal\src\dji_platform_manager.cpp</FilePath>
             </File>
           </Files>
         </Group>

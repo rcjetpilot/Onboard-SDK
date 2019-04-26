@@ -7,53 +7,41 @@
  *  Shows example usage of camera commands and gimbal position/speed control
  *  APIs
  *
- *  @copyright
- *  2017 DJI. All rights reserved.
- * */
+ *  @Copyright (c) 2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
 
 #include "camera_gimbal_sample.hpp"
 
 using namespace DJI::OSDK;
 using namespace DJI::OSDK::Telemetry;
 
-int
-main(int argc, char** argv)
-{
-
-  // Setup the OSDK: Read config file, create vehicle, activate.
-  Vehicle* vehicle = setupOSDK(argc, argv);
-  if (vehicle == NULL)
-  {
-    std::cout << "Vehicle not initialized, exiting.\n";
-    return -1;
-  }
-
-  // Display interactive prompt
-  std::cout
-    << "| Available commands:                                            |"
-    << std::endl;
-  std::cout
-    << "| [a] Exercise gimbal and camera control                         |"
-    << std::endl;
-  char inputChar;
-  std::cin >> inputChar;
-
-  switch (inputChar)
-  {
-    case 'a':
-      gimbalCameraControl(vehicle);
-      break;
-    default:
-      break;
-  }
-
-  delete (vehicle);
-  return 0;
-}
-
 bool
 gimbalCameraControl(Vehicle* vehicle)
 {
+  if(!vehicle->gimbal)
+  {
+    DERROR("Gimbal object does not exist.\n");
+    return false;
+  }
 
   int responseTimeout = 0;
 
@@ -67,7 +55,7 @@ gimbalCameraControl(Vehicle* vehicle)
    * Subscribe to gimbal data not supported in MAtrice 100
    */
 
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     // Telemetry: Verify the subscription
     ACK::ErrorCode subscribeStatus;
@@ -110,7 +98,7 @@ gimbalCameraControl(Vehicle* vehicle)
        ", and the accuracy depends on your magnetometer calibration.\n\n";
 
   // Get Gimbal initial values
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     initialAngle.roll  = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().y;
     initialAngle.pitch = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().x;
@@ -134,7 +122,7 @@ gimbalCameraControl(Vehicle* vehicle)
                "incremental control:\n";
 
   // Get current gimbal data to calc precision error in post processing
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     currentAngle.roll  = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().y;
     currentAngle.pitch = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().x;
@@ -150,7 +138,7 @@ gimbalCameraControl(Vehicle* vehicle)
   gimbal = GimbalContainer(0, 200, 1800, 20, 0, initialAngle, currentAngle);
   doSetGimbalAngle(vehicle, &gimbal);
 
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     currentAngle.roll  = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().y;
     currentAngle.pitch = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().x;
@@ -176,7 +164,7 @@ gimbalCameraControl(Vehicle* vehicle)
   gimbal = GimbalContainer(0, -500, 0, 20, 1, initialAngle);
   doSetGimbalAngle(vehicle, &gimbal);
 
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     currentAngle.roll  = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().y;
     currentAngle.pitch = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().x;
@@ -208,6 +196,14 @@ gimbalCameraControl(Vehicle* vehicle)
   gimbalSpeed.roll  = 100;
   gimbalSpeed.pitch = 50;
   gimbalSpeed.yaw   = -200;
+  gimbalSpeed.gimbal_control_authority = 1;
+  gimbalSpeed.disable_fov_zoom = 0;
+  gimbalSpeed.ignore_user_stick = 0;
+  gimbalSpeed.extend_control_range = 0;
+  gimbalSpeed.ignore_aircraft_motion = 0;
+  gimbalSpeed.yaw_return_neutral = 0;
+  gimbalSpeed.reserved0 = 0;
+  gimbalSpeed.reserved1 = 0;
 
   int speedControlDurationMs = 4000;
   int incrementMs            = 100;
@@ -217,7 +213,7 @@ gimbalCameraControl(Vehicle* vehicle)
     usleep(incrementMs * 1000);
   }
 
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     currentAngle.roll  = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().y;
     currentAngle.pitch = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().x;
@@ -237,7 +233,7 @@ gimbalCameraControl(Vehicle* vehicle)
   gimbal = GimbalContainer(0, 0, 0, 20, 1, initialAngle);
   doSetGimbalAngle(vehicle, &gimbal);
 
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     currentAngle.roll  = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().y;
     currentAngle.pitch = vehicle->subscribe->getValue<TOPIC_GIMBAL_ANGLES>().x;
@@ -258,7 +254,7 @@ gimbalCameraControl(Vehicle* vehicle)
   std::cout << "Check DJI GO App or SD card for a new video.\n";
 
   // Cleanup and exit gimbal sample
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     ACK::ErrorCode ack =
       vehicle->subscribe->removePackage(pkgIndex, responseTimeout);

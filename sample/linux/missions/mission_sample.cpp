@@ -8,67 +8,32 @@
  * the
  *  Mission Manager API.
  *
- *  @copyright
- *  2017 DJI. All rights reserved.
- * */
+ *  @Copyright (c) 2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
 
 #include "mission_sample.hpp"
 
 using namespace DJI::OSDK;
 using namespace DJI::OSDK::Telemetry;
-
-int
-main(int argc, char** argv)
-{
-  // Initialize variables
-  int functionTimeout = 1;
-
-  // Setup OSDK.
-  Vehicle* vehicle = setupOSDK(argc, argv);
-  if (vehicle == NULL)
-  {
-    std::cout << "Vehicle not initialized, exiting.\n";
-    return -1;
-  }
-
-  // Obtain Control Authority
-  vehicle->obtainCtrlAuthority(functionTimeout);
-
-  // Setup variables for use
-  uint8_t wayptPolygonSides;
-  int     hotptInitRadius;
-  int     responseTimeout = 1;
-
-  // Display interactive prompt
-  std::cout
-    << "| Available commands:                                            |"
-    << std::endl;
-  std::cout
-    << "| [a] Waypoint Mission                                           |"
-    << std::endl;
-  std::cout
-    << "| [b] Hotpoint Mission                                           |"
-    << std::endl;
-  char inputChar;
-  std::cin >> inputChar;
-  switch (inputChar)
-  {
-    case 'a':
-      // Waypoint call
-      wayptPolygonSides = 6;
-      runWaypointMission(vehicle, wayptPolygonSides, responseTimeout);
-      break;
-    case 'b':
-      hotptInitRadius = 10;
-      runHotpointMission(vehicle, hotptInitRadius, responseTimeout);
-      break;
-    default:
-      break;
-  }
-
-  delete (vehicle);
-  return 0;
-}
 
 bool
 setUpSubscription(DJI::OSDK::Vehicle* vehicle, int responseTimeout)
@@ -108,7 +73,7 @@ setUpSubscription(DJI::OSDK::Vehicle* vehicle, int responseTimeout)
     if (ACK::getError(ack))
     {
       std::cout << "Error unsubscribing; please restart the drone/FC to get "
-                   "back to a clean state.\n";
+        "back to a clean state.\n";
     }
     return false;
   }
@@ -124,7 +89,7 @@ teardownSubscription(DJI::OSDK::Vehicle* vehicle, const int pkgIndex,
   if (ACK::getError(ack))
   {
     std::cout << "Error unsubscribing; please restart the drone/FC to get back "
-                 "to a clean state.\n";
+      "to a clean state.\n";
     return false;
   }
   return true;
@@ -133,7 +98,7 @@ teardownSubscription(DJI::OSDK::Vehicle* vehicle, const int pkgIndex,
 bool
 runWaypointMission(Vehicle* vehicle, uint8_t numWaypoints, int responseTimeout)
 {
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     if (!setUpSubscription(vehicle, responseTimeout))
     {
@@ -186,7 +151,7 @@ runWaypointMission(Vehicle* vehicle, uint8_t numWaypoints, int responseTimeout)
 
   // Cleanup before return. The mission isn't done yet, but it doesn't need any
   // more input from our side.
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     return teardownSubscription(vehicle, DEFAULT_PACKAGE_INDEX,
                                 responseTimeout);
@@ -242,7 +207,7 @@ createWaypoints(DJI::OSDK::Vehicle* vehicle, int numWaypoints,
   // Global position retrieved via broadcast
   Telemetry::GlobalPosition broadcastGPosition;
 
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     subscribeGPosition = vehicle->subscribe->getValue<TOPIC_GPS_FUSED>();
     start_wp.latitude  = subscribeGPosition.latitude;
@@ -324,7 +289,7 @@ uploadWaypoints(Vehicle*                                  vehicle,
 bool
 runHotpointMission(Vehicle* vehicle, int initialRadius, int responseTimeout)
 {
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     if (!setUpSubscription(vehicle, responseTimeout))
     {
@@ -344,7 +309,7 @@ runHotpointMission(Vehicle* vehicle, int initialRadius, int responseTimeout)
                                 NULL);
   vehicle->missionManager->printInfo();
 
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     subscribeGPosition = vehicle->subscribe->getValue<TOPIC_GPS_FUSED>();
     vehicle->missionManager->hpMission->setHotPoint(
@@ -363,7 +328,13 @@ runHotpointMission(Vehicle* vehicle, int initialRadius, int responseTimeout)
   {
     ACK::getErrorCodeMessage(takeoffAck, __func__);
 
-    if (vehicle->getFwVersion() != Version::M100_31)
+    if(takeoffAck.info.cmd_set == OpenProtocolCMD::CMDSet::control
+       && takeoffAck.data == ErrorCode::CommonACK::START_MOTOR_FAIL_MOTOR_STARTED)
+    {
+      DSTATUS("Take off command sent failed. Please Land the drone and disarm the motors first.\n");
+    }
+
+    if (!vehicle->isM100() && !vehicle->isLegacyM600())
     {
       teardownSubscription(vehicle, DEFAULT_PACKAGE_INDEX, responseTimeout);
     }
@@ -381,7 +352,7 @@ runHotpointMission(Vehicle* vehicle, int initialRadius, int responseTimeout)
   if (ACK::getError(startAck))
   {
     ACK::getErrorCodeMessage(startAck, __func__);
-    if (vehicle->getFwVersion() != Version::M100_31)
+    if (!vehicle->isM100() && !vehicle->isLegacyM600())
     {
       teardownSubscription(vehicle, DEFAULT_PACKAGE_INDEX, responseTimeout);
     }
@@ -442,7 +413,7 @@ runHotpointMission(Vehicle* vehicle, int initialRadius, int responseTimeout)
 
   // Clean up
   ACK::getErrorCodeMessage(startAck, __func__);
-  if (vehicle->getFwVersion() != Version::M100_31)
+  if (!vehicle->isM100() && !vehicle->isLegacyM600())
   {
     teardownSubscription(vehicle, DEFAULT_PACKAGE_INDEX, responseTimeout);
   }

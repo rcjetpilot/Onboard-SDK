@@ -5,26 +5,45 @@
  *  @brief
  *  Pthread-based threading for DJI Onboard SDK on linux platforms
  *
- *  @copyright
- *  2016-17 DJI. All rights reserved.
- * */
+ *  @Copyright (c) 2016-2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
 
 #include "posix_thread.hpp"
-#include <string>
+#include "dji_vehicle.hpp"
 
 using namespace DJI::OSDK;
 
 PosixThread::PosixThread()
 {
-  vehicle = 0;
-  type    = 0;
+  this->vehicle        = 0;
+  this->type           = 0;
+  this->stop_condition = false;
 }
 
 PosixThread::PosixThread(Vehicle* vehicle, int Type)
 {
-  this->vehicle = vehicle;
-  this->type    = Type;
-  vehicle->setStopCond(false);
+  this->vehicle        = vehicle;
+  this->type           = Type;
+  this->stop_condition = false;
 }
 
 bool
@@ -44,14 +63,19 @@ PosixThread::createThread()
   }
   else if (2 == type)
   {
-    ret     = pthread_create(&threadID, NULL, read_call, vehicle);
+    ret =
+      pthread_create(&threadID, NULL, uart_serial_read_call, (void*)vehicle);
     infoStr = "readPoll";
   }
-
   else if (3 == type)
   {
     ret     = pthread_create(&threadID, NULL, callback_call, (void*)vehicle);
     infoStr = "callback";
+  }
+  else if (5 == type)
+  {
+    ret     = pthread_create(&threadID, NULL, USB_read_call, (void*)vehicle);
+    infoStr = "USBReadPoll";
   }
   else
   {
@@ -78,23 +102,23 @@ PosixThread::stopThread()
 {
   int   ret = -1;
   void* status;
-  vehicle->setStopCond(true);
+  this->stop_condition = true;
 
   /* Free attribute and wait for the other threads */
   if (int i = pthread_attr_destroy(&attr))
   {
-    DERROR("fail to destroy thread %d\n", i);
+    DERROR("Failed to destroy thread %d\n", i);
   }
   else
   {
-    DDEBUG("success to distory thread\n");
+    DDEBUG("Succeeded to destroy thread\n");
   }
+
   ret = pthread_join(threadID, &status);
 
-  DDEBUG("Main: completed join with thread code: %d\n", ret);
   if (ret)
   {
-    // Return error code
+    DDEBUG("Join thread error: %d\n", ret);
     return ret;
   }
 
@@ -113,26 +137,60 @@ PosixThread::send_call(void* param)
 }
 
 void*
-PosixThread::read_call(void* param)
+PosixThread::uart_serial_read_call(void* param)
 {
-
-  RecvContainer recvContainer;
-  Vehicle*      vehiclePtr = (Vehicle*)param;
-  while (!(vehiclePtr->getStopCond()))
+  RecvContainer* recvContainer_copy = new RecvContainer();
+  Vehicle*       vehiclePtr         = (Vehicle*)param;
+  while (!(vehiclePtr->getSerialReadThread()->getStopCondition()))
   {
-    // receive() implemented on the OpenProtocol side
-    recvContainer = vehiclePtr->protocolLayer->receive();
-    vehiclePtr->processReceivedData(recvContainer);
+    // receive() implemented on the OpenProtocolCMD side
+    // do a copy here to prevent low level changes to the ptr
+    RecvContainer* recvContainer = vehiclePtr->protocolLayer->receive();
+
+    if (recvContainer->recvInfo.cmd_id != 0xFF)
+    {
+      vehiclePtr->protocolLayer->getThreadHandle()->lockRecvContainer();
+      memcpy(recvContainer_copy, recvContainer, sizeof(RecvContainer));
+      vehiclePtr->protocolLayer->getThreadHandle()->freeRecvContainer();
+      vehiclePtr->processReceivedData(recvContainer_copy);
+    }
     usleep(10); //! @note CPU optimization, reduce the CPU usage a lot
   }
+
+  delete recvContainer_copy;
   DDEBUG("Quit read function\n");
+}
+
+void*
+PosixThread::USB_read_call(void* param)
+{
+  RecvContainer* recvContainer = new RecvContainer();
+  Vehicle*       vehiclePtr    = (Vehicle*)param;
+#ifdef ADVANCED_SENSING
+  while (!vehiclePtr->getUSBReadThread()->getStopCondition())
+  {
+    if (vehiclePtr->isUSBThreadReady())
+    {
+      recvContainer = vehiclePtr->advancedSensing->getAdvancedSensingProtocol()->receive();
+
+      if (recvContainer->recvInfo.cmd_id != 0xFF)
+      {
+        vehiclePtr->processAdvancedSensingImgs(recvContainer);
+      }
+    }
+    usleep(10);
+  }
+#endif
+
+  delete recvContainer;
+  DDEBUG("Quit USB read function\n");
 }
 
 void*
 PosixThread::callback_call(void* param)
 {
   Vehicle* vehiclePtr = (Vehicle*)param;
-  while (!(vehiclePtr->getStopCond()))
+  while (!(vehiclePtr->getCallbackThread()->getStopCondition()))
   {
     vehiclePtr->callbackPoll();
     usleep(10); //! @note CPU optimization, reduce the CPU usage a lot

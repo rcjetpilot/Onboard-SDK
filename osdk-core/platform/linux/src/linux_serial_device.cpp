@@ -8,9 +8,27 @@
  *
  *  Use this in your own Linux-based DJI Onboard SDK implementations.
  *
- *  @copyright
- *  2016-17 DJI. All rights reserved.
- * */
+ *  @Copyright (c) 2016-2017 DJI
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
 
 #include "linux_serial_device.hpp"
 #include <algorithm>
@@ -136,7 +154,7 @@ int LinuxSerialDevice::_checkBaudRate(uint8_t (&buf)[BUFFER_SIZE])
   }
   if (curTime.tv_sec >= absTimeout.tv_sec)
     return -1;
-  if (std::end(buf) == std::find(std::begin(buf), std::end(buf), 0xAA))
+  if (buf + BUFFER_SIZE == std::find(buf, buf + BUFFER_SIZE, 0xAA))
     return -2;
 
   return 1;
@@ -188,7 +206,7 @@ LinuxSerialDevice::_serialConfig(int baudrate, char data_bits, char parity_bits,
                                  char stop_bits, bool testForData)
 {
   int st_baud[] = { B4800,  B9600,   B19200,  B38400,
-                    B57600, B115200, B230400, B921600 };
+                    B57600, B115200, B230400, B921600, B1000000};
   int std_rate[] = { 4800,   9600,   19200,   38400,   57600,  115200,
                      230400, 921600, 1000000, 1152000, 3000000 };
 
@@ -215,6 +233,9 @@ LinuxSerialDevice::_serialConfig(int baudrate, char data_bits, char parity_bits,
     case 8:
       newtio.c_cflag |= CS8;
       break;
+    default:
+      newtio.c_cflag |= CS8;
+      break; //8N1 default config
   }
   /* config the parity bit */
   switch (parity_bits)
@@ -236,6 +257,9 @@ LinuxSerialDevice::_serialConfig(int baudrate, char data_bits, char parity_bits,
     case 'n':
       newtio.c_cflag &= ~PARENB;
       break;
+    default:
+      newtio.c_cflag &= ~PARENB;
+      break; //8N1 default config
   }
   /* config baudrate */
   j = sizeof(std_rate) / 4;
@@ -254,6 +278,8 @@ LinuxSerialDevice::_serialConfig(int baudrate, char data_bits, char parity_bits,
     newtio.c_cflag &= ~CSTOPB;
   else if (stop_bits == 2)
     newtio.c_cflag |= CSTOPB;
+  else
+    newtio.c_cflag &= ~CSTOPB; //8N1 default config
 
 /* config waiting time & min number of char */
 //! If you just want to see if there is data on the line, put the serial config
